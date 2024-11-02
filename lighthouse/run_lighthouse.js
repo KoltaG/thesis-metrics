@@ -38,8 +38,7 @@ const outputExcel = `./results/${appType}_${deviceType}/lighthouse_results_${app
 async function runLighthouseWithAuth(iteration) {
   // Step 1: Launch Chrome using chrome-launcher with a fixed port
   const chrome = await launch({
-    headless: true,
-    chromeFlags: ["--remote-debugging-port=9222"],
+    chromeFlags: ["--headless", "--remote-debugging-port=9222"],
     port: 9222,
   });
 
