@@ -4,6 +4,7 @@
     "chrome-launcher": "^1.1.2",
     "lighthouse": "^12.2.1",
     "node-fetch": "^3.3.2",
-    "puppeteer": "^23.6.1"
+    "puppeteer": "^23.6.1",
+    "xlsx": "^0.18.5"
   }
 }
