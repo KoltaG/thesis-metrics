@@ -11,8 +11,7 @@ const appType = "vue"; // Set the app type to "react" or "vue"
 const deviceType = "desktop"; // Set the device type to "mobile" or "desktop"
 const url = `https://thesis-${appType}.webtic.app`;
 //const url = "http://localhost:4173";
-const accessToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NmVjNGIwNzE2ODgxZjcwNjRjZGRjMjQiLCJyb2xlIjoiUE0iLCJpYXQiOjE3MzA1Njk4NzksImV4cCI6MTczMDU3MzQ3OX0.JIlPUoJIO3iKW_Y8s-lyrWr8GWud3g4yEenuuu7fsVE"; // Replace with your actual access token
+const accessToken = "";
 const userJSON = {
   email: "john_pm1@example.com",
   name: "John PM1",
@@ -20,14 +19,20 @@ const userJSON = {
   _id: "66ec4b0716881f7064cddc24",
 };
 const user = JSON.stringify(userJSON);
-const resultsDir = `./results/${appType}_${deviceType}/`;
-const outputExcel = `./results/${appType}_${deviceType}/lighthouse_results_${appType}_${deviceType}.xlsx`;
-const iterations = 3; // Number of Lighthouse iterations
+const iterations = 100; // Number of Lighthouse cycles to run
 
-// Make sure the results directory exists
+// Determine results directory based on accessToken
+const resultsDir =
+  accessToken === ""
+    ? `./results/${appType}_${deviceType}/login`
+    : `./results/${appType}_${deviceType}/dashboard`;
+
+// Ensure the results directory exists
 if (!fs.existsSync(resultsDir)) {
   fs.mkdirSync(resultsDir, { recursive: true });
 }
+
+const outputExcel = `./results/${appType}_${deviceType}/lighthouse_results_${appType}_${deviceType}.xlsx`;
 
 // Lighthouse with authentication
 async function runLighthouseWithAuth(iteration) {
@@ -90,9 +95,15 @@ async function runLighthouseWithAuth(iteration) {
   // Step 6: Run Lighthouse on the authenticated page
   const result = await lighthouse(url, options);
 
+  const lighthouseReportsDir = path.join(resultsDir, "lighthouse_reports");
+
+  if (!fs.existsSync(lighthouseReportsDir)) {
+    fs.mkdirSync(lighthouseReportsDir, { recursive: true });
+  }
+
   // Step 7: Save the Lighthouse report with appType and deviceType in the filename
   const outputFile = path.join(
-    resultsDir,
+    lighthouseReportsDir,
     `lighthouse_report_${appType}_${deviceType}_iteration_${iteration}.json`
   );
   fs.writeFileSync(outputFile, JSON.stringify(result.lhr, null, 2));
