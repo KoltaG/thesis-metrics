@@ -10,10 +10,11 @@ import * as xlsx from "xlsx";
 const args = process.argv.slice(2); // Get command line arguments
 const appType = args[0] || "vue"; // Default to "vue" if not provided
 const deviceType = args[1] || "desktop"; // Default to "desktop" if not provided
+const accessToken = args[2] || ""; // Default to empty string if not provided
 
 const url = `https://thesis-${appType}.webtic.app`;
 //const url = "http://localhost:4173";
-const accessToken = "";
+
 const userJSON = {
   email: "john_pm1@example.com",
   name: "John PM1",
@@ -34,7 +35,7 @@ if (!fs.existsSync(resultsDir)) {
   fs.mkdirSync(resultsDir, { recursive: true });
 }
 
-const outputExcel = `./results/${appType}_${deviceType}/lighthouse_results_${appType}_${deviceType}.xlsx`;
+const outputExcel = `${resultsDir}/lighthouse_results_${appType}_${deviceType}.xlsx`;
 
 // Lighthouse with authentication
 async function runLighthouseWithAuth(iteration) {
