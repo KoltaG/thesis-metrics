@@ -8,8 +8,11 @@ import * as xlsx from "xlsx";
 
 // Configuration
 const appType = "vue"; // Set the app type to "react" or "vue"
+const deviceType = "desktop"; // Set the device type to "mobile" or "desktop"
 const url = `https://thesis-${appType}.webtic.app`;
-const accessToken = "your_access_token_here"; // Replace with your actual access token
+//const url = "http://localhost:4173";
+const accessToken =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NmVjNGIwNzE2ODgxZjcwNjRjZGRjMjQiLCJyb2xlIjoiUE0iLCJpYXQiOjE3MzA1Njk4NzksImV4cCI6MTczMDU3MzQ3OX0.JIlPUoJIO3iKW_Y8s-lyrWr8GWud3g4yEenuuu7fsVE"; // Replace with your actual access token
 const userJSON = {
   email: "john_pm1@example.com",
   name: "John PM1",
@@ -17,8 +20,8 @@ const userJSON = {
   _id: "66ec4b0716881f7064cddc24",
 };
 const user = JSON.stringify(userJSON);
-const resultsDir = `./results/${appType}/`;
-const outputExcel = `./results/${appType}/lighthouse_results.xlsx`;
+const resultsDir = `./results/${appType}_${deviceType}/`;
+const outputExcel = `./results/${appType}_${deviceType}/lighthouse_results_${appType}_${deviceType}.xlsx`;
 const iterations = 3; // Number of Lighthouse iterations
 
 // Make sure the results directory exists
@@ -42,7 +45,7 @@ async function runLighthouseWithAuth(iteration) {
   });
   const page = await browser.newPage();
 
-  // Step 3: Navigate to the app's base URL and set the access token and the userstring in localStorage
+  // Step 3: Navigate to the app's base URL and set the access token and user string in localStorage
   await page.goto(url);
   await page.evaluate(
     (token, userData) => {
@@ -60,22 +63,42 @@ async function runLighthouseWithAuth(iteration) {
   // Wait to make sure the auth state is applied
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // Step 5: Run Lighthouse on the authenticated page
-  const result = await lighthouse(url, {
+  // Step 5: Define Lighthouse options based on the device type
+  const options = {
     port: 9222,
     output: "json",
     logLevel: "info",
-  });
+    formFactor: deviceType,
+    screenEmulation:
+      deviceType === "mobile"
+        ? {
+            mobile: true,
+            width: 375,
+            height: 667,
+            deviceScaleFactor: 2,
+            disabled: false,
+          }
+        : {
+            mobile: false,
+            width: 1350,
+            height: 940,
+            deviceScaleFactor: 1,
+            disabled: false,
+          },
+  };
 
-  // Step 6: Save the Lighthouse report
+  // Step 6: Run Lighthouse on the authenticated page
+  const result = await lighthouse(url, options);
+
+  // Step 7: Save the Lighthouse report with appType and deviceType in the filename
   const outputFile = path.join(
     resultsDir,
-    `lighthouse_report_dashboard_${iteration}.json`
+    `lighthouse_report_${appType}_${deviceType}_iteration_${iteration}.json`
   );
   fs.writeFileSync(outputFile, JSON.stringify(result.lhr, null, 2));
   console.log(`Lighthouse report saved to ${outputFile}`);
 
-  // Step 7: Disconnect Puppeteer and close Chrome
+  // Step 8: Disconnect Puppeteer and close Chrome
   await browser.disconnect();
   await chrome.kill();
 
