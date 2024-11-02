@@ -7,8 +7,10 @@ import path from "path";
 import * as xlsx from "xlsx";
 
 // Configuration
-const appType = "vue"; // Set the app type to "react" or "vue"
-const deviceType = "desktop"; // Set the device type to "mobile" or "desktop"
+const args = process.argv.slice(2); // Get command line arguments
+const appType = args[0] || "vue"; // Default to "vue" if not provided
+const deviceType = args[1] || "desktop"; // Default to "desktop" if not provided
+
 const url = `https://thesis-${appType}.webtic.app`;
 //const url = "http://localhost:4173";
 const accessToken = "";
