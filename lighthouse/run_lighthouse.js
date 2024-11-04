@@ -76,6 +76,8 @@ async function runLighthouseWithAuth(iteration) {
     port: 9222,
     output: "json",
     logLevel: "info",
+    onlyCategories: ["performance"],
+    throttlingMethod: "provided",
     formFactor: deviceType,
     screenEmulation:
       deviceType === "mobile"
@@ -119,10 +121,6 @@ async function runLighthouseWithAuth(iteration) {
   // Result
   return {
     performance: result.lhr.categories.performance.score,
-    accessibility: result.lhr.categories.accessibility.score,
-    bestPractices: result.lhr.categories["best-practices"].score,
-    seo: result.lhr.categories.seo.score,
-    pwa: result.lhr.categories.pwa ? result.lhr.categories.pwa.score : null,
     metrics: {
       firstContentfulPaint:
         result.lhr.audits["first-contentful-paint"].displayValue,
