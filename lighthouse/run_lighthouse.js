@@ -22,7 +22,7 @@ const userJSON = {
   _id: "66ec4b0716881f7064cddc24",
 };
 const user = JSON.stringify(userJSON);
-const iterations = 15; // Number of Lighthouse cycles to run
+const iterations = 30; // Number of Lighthouse cycles to run
 
 // Determine results directory based on accessToken
 const resultsDir =
