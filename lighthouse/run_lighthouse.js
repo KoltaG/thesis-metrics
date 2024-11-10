@@ -4,7 +4,6 @@ import lighthouse from "lighthouse";
 import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
-import * as xlsx from "xlsx";
 
 // Configuration
 const args = process.argv.slice(2); // Get command line arguments
@@ -30,7 +29,6 @@ const resultsDir =
     ? `./results/${appType}_${deviceType}/login`
     : `./results/${appType}_${deviceType}/dashboard`;
 
-// Ensure the results directory exists
 if (!fs.existsSync(resultsDir)) {
   fs.mkdirSync(resultsDir, { recursive: true });
 }
@@ -122,14 +120,15 @@ async function runLighthouseWithAuth(iteration) {
   return {
     performance: result.lhr.categories.performance.score,
     metrics: {
+      speedIndex: result.lhr.audits["speed-index"].numericValue,
       firstContentfulPaint:
-        result.lhr.audits["first-contentful-paint"].displayValue,
+        result.lhr.audits["first-contentful-paint"].numericValue,
       largestContentfulPaint:
-        result.lhr.audits["largest-contentful-paint"].displayValue,
-      timeToInteractive: result.lhr.audits["interactive"].displayValue,
-      totalBlockingTime: result.lhr.audits["total-blocking-time"].displayValue,
+        result.lhr.audits["largest-contentful-paint"].numericValue,
+      timeToInteractive: result.lhr.audits["interactive"].numericValue,
+      totalBlockingTime: result.lhr.audits["total-blocking-time"].numericValue,
       cumulativeLayoutShift:
-        result.lhr.audits["cumulative-layout-shift"].displayValue,
+        result.lhr.audits["cumulative-layout-shift"].numericValue,
     },
   };
 }
@@ -146,74 +145,6 @@ async function runMultipleIterations() {
     allScores.push(metrics);
     console.log(`Iteration ${i + 1} metrics:`, metrics);
   }
-
-  // Write scores and metrics to Excel
-  const workbook = xlsx.utils.book_new();
-
-  // Add each iteration's scores and metrics to a separate sheet
-  allScores.forEach((metrics, index) => {
-    const sheetData = [["Metric", "Score"]];
-    // Include both scores and metrics in the Excel sheet
-    for (const [metric, score] of Object.entries(metrics)) {
-      if (metric === "metrics") {
-        for (const [subMetric, value] of Object.entries(metrics[metric])) {
-          sheetData.push([subMetric, value]);
-        }
-      } else {
-        sheetData.push([metric, score]);
-      }
-    }
-    const worksheet = xlsx.utils.aoa_to_sheet(sheetData);
-    xlsx.utils.book_append_sheet(workbook, worksheet, `Iteration_${index + 1}`);
-  });
-
-  // Calculate and save average scores and metrics
-  const avgScores = {};
-  const avgMetrics = {};
-
-  for (const metric in allScores[0]) {
-    if (metric !== "metrics") {
-      avgScores[metric] = (
-        allScores.reduce(
-          (sum, iteration) => sum + (iteration[metric] || 0),
-          0
-        ) / iterations
-      ).toFixed(2);
-    } else {
-      // Calculate averages for each metric in "metrics"
-      for (const subMetric in allScores[0].metrics) {
-        avgMetrics[subMetric] = (
-          allScores.reduce(
-            (sum, iteration) =>
-              sum + parseFloat(iteration.metrics[subMetric] || 0),
-            0
-          ) / iterations
-        ).toFixed(2);
-      }
-    }
-  }
-
-  // Add average scores and metrics to a summary sheet
-  const avgSheetData = [["Metric", "Average Score"]];
-  for (const [metric, avgScore] of Object.entries(avgScores)) {
-    avgSheetData.push([metric, avgScore]);
-  }
-  for (const [subMetric, avgValue] of Object.entries(avgMetrics)) {
-    avgSheetData.push([subMetric, avgValue]);
-  }
-  const avgWorksheet = xlsx.utils.aoa_to_sheet(avgSheetData);
-  xlsx.utils.book_append_sheet(workbook, avgWorksheet, "Averages");
-
-  // Save the workbook
-  xlsx.writeFile(workbook, outputExcel);
-  console.log(`Excel file saved at ${outputExcel}`);
-
-  // Save the JSON summary of all results
-  fs.writeFileSync(
-    path.join(resultsDir, "results.json"),
-    JSON.stringify(results, null, 2)
-  );
-  console.log("All iteration metrics saved to results.json");
 }
 
 // Run
